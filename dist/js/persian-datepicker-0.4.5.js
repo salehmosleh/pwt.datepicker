@@ -101,7 +101,7 @@ var ClassConfig = {
     formatter: function (unixDate) {
         var self = this;
         var pdate = new persianDate(unixDate);
-        pdate.formatPersian = false;
+        pdate.formatPersian = self.persianDigit;
         return pdate.format(self.format);
     },
 
@@ -2190,12 +2190,16 @@ var ClassDatepicker = {
     _updateInputElement: function () {
         var self = this;
         self._flagSelfManipulate = true;
-        // Update Alt Field
-        self.altField.val(self.altFieldFormatter(self.state.selected.unixDate).replace(" PM","").replace(" AM","")).trigger('change');
-        ;
-        // Update Display Field
-        self.inputElem.val(self.formatter(self.state.selected.unixDate).replace(" PM","").replace(" AM","")).trigger('change');
-        ;
+       
+		if(!self.persianDigit){
+			// Update Alt Field
+			self.altField.val(self.altFieldFormatter(self.state.selected.unixDate).replace(" PM","").replace(" AM","")).trigger('change');
+			// Update Display Field
+			self.inputElem.val(self.formatter(self.state.selected.unixDate).replace(" PM","").replace(" AM","")).trigger('change');
+		}else{
+			self.altField.val(self.altFieldFormatter(self.state.selected.unixDate).replace(" ق ظ","").replace(" ب ظ","")).trigger('change');
+			self.inputElem.val(self.formatter(self.state.selected.unixDate).replace(" ق ظ","").replace(" ب ظ","")).trigger('change');
+		}
         self._flagSelfManipulate = false;
         return self;
     },
