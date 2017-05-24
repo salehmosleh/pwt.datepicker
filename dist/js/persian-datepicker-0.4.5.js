@@ -27,15 +27,6 @@ var ClassConfig = {
 
     /**
      * @memberOf ClassDatepicker.ClassConfig
-     * @description if false datepicker initiate with empty value in input.
-     * @type {boolean}
-     * @default true
-     */
-    initialValue: true,
-
-
-    /**
-     * @memberOf ClassDatepicker.ClassConfig
      * @description if true all digit convert to persian digit.
      * @type {boolean}
      * @default true
@@ -61,7 +52,7 @@ var ClassConfig = {
      * @default auto
      */
     position: "auto",
-
+	realposition: "auto",
 
     /**
      * @memberOf ClassDatepicker.ClassConfig
@@ -125,6 +116,7 @@ var ClassConfig = {
     altField: false,
 
 
+    into: 'body',
     /**
      * @memberOf ClassDatepicker.ClassConfig
      * @description the date format, combination of d, dd, m, mm, yy, yyy.
@@ -195,7 +187,7 @@ var ClassConfig = {
      */
     destroy: function () {
         this.inputElem.removeClass(self.cssClass);
-        this.element.main.remove();
+        this.elmenet.main.remove();
     },
 
 
@@ -251,13 +243,13 @@ var ClassConfig = {
             /**
              * @desc text of next btn
              */
-            btnNextText: "<",
+            btnNextText: ">",
 
 
             /**
              * @desc text of prev btn
              */
-            btnPrevText: ">"
+            btnPrevText: "<"
         },
 
 
@@ -1779,9 +1771,7 @@ var ViewsDatePicker = {
                 }
 
                 self.changeView(self.viewMode);
-                if (self.initialValue) {
-                    self._syncWithImportData(self.state.unixDate);
-                }
+                self._syncWithImportData(self.state.unixDate);
                 return this;
             },
 
@@ -1795,16 +1785,22 @@ var ViewsDatePicker = {
                 if (!self._inlineView) {
                     var inputX = self.inputElem.offset().top;
                     var inputY = self.inputElem.offset().left;
-                    if (self.position === "auto") {
+                    if (self.position === "auto" && self.realposition === "auto") {
                         var inputHeight = self.fullHeight(self.inputElem);
                         self.element.main.css({
                             top: (inputX + inputHeight) + 'px',
                             left: inputY + 'px'
                         });
-                    } else {
+                    } else if(self.realposition !== "auto") {
+						var inputHeight = self.fullHeight(self.inputElem);
                         self.element.main.css({
-                            top: (inputX + self.position[0]) + 'px',
-                            left: (inputY + self.position[1]) + 'px'
+                            top: (inputX + inputHeight + self.realposition()[0]) + 'px',
+                            left: (inputY + inputHeight + self.realposition()[1]) + 'px'
+                        });
+                    } else { 
+                        self.element.main.css({
+                            top: (inputX + position[0]) + 'px',
+                            left: (inputY + position[1]) + 'px'
                         });
                     }
                 }
@@ -2195,10 +2191,10 @@ var ClassDatepicker = {
         var self = this;
         self._flagSelfManipulate = true;
         // Update Alt Field
-        self.altField.val(self.altFieldFormatter(self.state.selected.unixDate)).trigger('change');
+        self.altField.val(self.altFieldFormatter(self.state.selected.unixDate).replace(" PM","").replace(" AM","")).trigger('change');
         ;
         // Update Display Field
-        self.inputElem.val(self.formatter(self.state.selected.unixDate)).trigger('change');
+        self.inputElem.val(self.formatter(self.state.selected.unixDate).replace(" PM","").replace(" AM","")).trigger('change');
         ;
         self._flagSelfManipulate = false;
         return self;
@@ -2213,7 +2209,7 @@ var ClassDatepicker = {
     _defineOnInitState: function () {
         if ($(this.$container)[0].nodeName == 'INPUT') {
             var garegurianDate = new Date(this.inputElem.val()).valueOf();
-            this.$container = $('body');
+            this.$container = $(this.into);
         }
         else {
             var garegurianDate = new Date($(this.$container).data('date')).valueOf();
@@ -2237,10 +2233,7 @@ var ClassDatepicker = {
      * @desc set time of timepicker
      */
     setTime: function () {
-        if(this.timePicker.enabled){
-            this.timePicker.setTime(this.state.selected.unixDate);
-        }
-        return this;
+        this.timePicker.setTime(this.state.selected.unixDate);
     },
 
 
@@ -2264,9 +2257,7 @@ var ClassDatepicker = {
         this.state = new State({datepicker: self});
         this.compatConfig();
         this._defineOnInitState();
-        if (self.initialValue) {
-            this._updateInputElement();
-        }
+        this._updateInputElement();
         this.view = this.views['default'];
         this.view.render(this);
         this.inputElem.data("datepicker", this);
@@ -2618,7 +2609,7 @@ var ClassDayPicker = {
             datepicker: self.datepicker
         });
         this.mGrid.attachEvent("selectDay", function (x) {
-            self.datepicker.selectDate(x);
+            self.datepicker.selectDate( x);
             self.onSelect(x);
             self.mGrid.selectDate(self.datepicker.state.selected.unixDate);
         });
@@ -3331,29 +3322,21 @@ var ClassTimePicker = {
      */
     _movehour: function (mode) {
         var currentVal = parseInt(this.hourInput.val());
-        if (this.showMeridian == true) {
-            if (mode === 'up') {
-                if (currentVal >= 12) {
-                    currentVal = this.hourStep;
-                } else {
-                    currentVal += this.hourStep;
-                }
+        if (mode === 'up') {
+            if (currentVal >= 23) {
+                currentVal = this.hourStep;
             } else {
-                if (currentVal <= 1) {
-                    currentVal = 12;
-                } else {
-                    currentVal -= this.hourStep;
-                }
+                currentVal += this.hourStep;
             }
         } else {
-            if (mode === 'up') {
-                currentVal += this.hourStep;
+            if (currentVal <= 0) {
+                currentVal = 23;
             } else {
                 currentVal -= this.hourStep;
             }
         }
         this.hourInput.val(currentVal);
-        this._updateState('hour', this.convert12hTo24(currentVal));
+        this._updateState('hour', (currentVal));
         return this;
     },
 
@@ -3518,7 +3501,7 @@ var ClassTimePicker = {
      *
      * @param unix
      */
-    setTime: function (unix) {
+    setTime:function(unix){
         var pd = new persianDate(unix);
         this._updateState('hour', pd.hour());
         this._updateState('minute', pd.minute());
