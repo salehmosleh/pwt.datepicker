@@ -10,7 +10,7 @@ example :
 ```
 $("#inputtext").persianDatepicker({
   altField: "##inputtext" , // show resualt of datetime selected into "altField"
-  into : '#projectframe', // add htmls of datetime picker inside "into"
+  into : '#parentelement', // add htmls of datetime picker inside "into"
   timePicker: {
     enabled: true, // show it
     showMeridian:false // hide AM/PM in time picker
